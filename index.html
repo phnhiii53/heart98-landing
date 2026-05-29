@@ -866,6 +866,92 @@
       transform: translateY(0);
     }
 
+    body.promo-open {
+      overflow: hidden;
+    }
+
+    .promo-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: grid;
+      place-items: center;
+      padding: 22px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.24s ease;
+    }
+
+    .promo-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .promo-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(7, 24, 63, 0.72);
+      backdrop-filter: blur(6px);
+    }
+
+    .promo-dialog {
+      position: relative;
+      width: min(92vw, 620px);
+      border-radius: 24px;
+      background: var(--white);
+      box-shadow: 0 28px 90px rgba(8, 25, 70, 0.34);
+      transform: translateY(18px) scale(0.98);
+      transition: transform 0.24s ease;
+      overflow: hidden;
+    }
+
+    .promo-modal.open .promo-dialog {
+      transform: translateY(0) scale(1);
+    }
+
+    .promo-media {
+      display: block;
+      overflow: hidden;
+      line-height: 0;
+    }
+
+    .promo-media img {
+      width: 100%;
+      display: block;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+    }
+
+    .promo-actions {
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+      background: var(--white);
+    }
+
+    .promo-cta {
+      width: min(100%, 310px);
+      justify-content: center;
+      box-shadow: 0 14px 34px rgba(224, 22, 55, 0.2);
+    }
+
+    .promo-close {
+      position: absolute;
+      top: -14px;
+      right: -14px;
+      width: 42px;
+      height: 42px;
+      border: 0;
+      border-radius: 999px;
+      background: var(--red);
+      color: var(--white);
+      font-size: 1.45rem;
+      font-weight: 800;
+      line-height: 1;
+      cursor: pointer;
+      box-shadow: 0 14px 34px rgba(224, 22, 55, 0.34);
+    }
+
     @media (max-width: 1040px) {
       .nav-links {
         display: none;
@@ -994,10 +1080,38 @@
       .footer-inner {
         display: grid;
       }
+
+      .promo-modal {
+        padding: 18px;
+      }
+
+      .promo-dialog {
+        border-radius: 18px;
+      }
+
+      .promo-close {
+        top: -12px;
+        right: -8px;
+        width: 38px;
+        height: 38px;
+      }
     }
   </style>
 </head>
 <body>
+  <div class="promo-modal" id="promoModal" role="dialog" aria-modal="true" aria-label="khuyen mai ve sinh giay" aria-hidden="true">
+    <div class="promo-backdrop" data-promo-close></div>
+    <div class="promo-dialog">
+      <button class="promo-close" type="button" aria-label="dong popup khuyen mai" data-promo-close>&times;</button>
+      <div class="promo-media">
+        <img src="./assets/images/ve-sinh-giay-thu-duc-khuyen-mai.jpg" alt="khuyen mai ve sinh giay heart98" />
+      </div>
+      <div class="promo-actions">
+        <a class="btn btn-primary promo-cta" href="https://m.me/heart98vn" target="_blank" rel="noopener">liên hệ nhận ưu đãi</a>
+      </div>
+    </div>
+  </div>
+
   <div class="top-note">clean with care, all by heart</div>
 
   <header class="site-header">
@@ -1348,6 +1462,53 @@
     );
 
     document.querySelectorAll(".reveal").forEach((element) => observer.observe(element));
+
+    const promoModal = document.getElementById("promoModal");
+    const promoStorageKey = "heart98PromoClosedAt";
+    const promoHideTime = 24 * 60 * 60 * 1000;
+
+    const getPromoClosedAt = () => {
+      try {
+        return Number(localStorage.getItem(promoStorageKey) || 0);
+      } catch {
+        return 0;
+      }
+    };
+
+    const setPromoClosedAt = () => {
+      try {
+        localStorage.setItem(promoStorageKey, String(Date.now()));
+      } catch {
+        return;
+      }
+    };
+
+    const openPromo = () => {
+      promoModal.classList.add("open");
+      promoModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("promo-open");
+    };
+
+    const closePromo = () => {
+      promoModal.classList.remove("open");
+      promoModal.setAttribute("aria-hidden", "true");
+      document.body.classList.remove("promo-open");
+      setPromoClosedAt();
+    };
+
+    if (Date.now() - getPromoClosedAt() > promoHideTime) {
+      window.setTimeout(openPromo, 900);
+    }
+
+    promoModal.querySelectorAll("[data-promo-close]").forEach((element) => {
+      element.addEventListener("click", closePromo);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && promoModal.classList.contains("open")) {
+        closePromo();
+      }
+    });
   </script>
 </body>
 </html>
